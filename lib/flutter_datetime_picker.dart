@@ -1,16 +1,16 @@
-library flutter_datetime_picker;
+library flutter_datetime_picker_extend;
 
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_datetime_picker/src/cupertino_picker.dart' as cupertinoPicker;
+import 'package:flutter_datetime_picker_extend/src/cupertino_picker.dart' as cupertinoPicker;
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker/src/datetime_picker_theme.dart';
-import 'package:flutter_datetime_picker/src/date_model.dart';
-import 'package:flutter_datetime_picker/src/i18n_model.dart';
+import 'package:flutter_datetime_picker_extend/src/datetime_picker_theme.dart';
+import 'package:flutter_datetime_picker_extend/src/date_model.dart';
+import 'package:flutter_datetime_picker_extend/src/i18n_model.dart';
 
-export 'package:flutter_datetime_picker/src/datetime_picker_theme.dart';
-export 'package:flutter_datetime_picker/src/date_model.dart';
-export 'package:flutter_datetime_picker/src/i18n_model.dart';
+export 'package:flutter_datetime_picker_extend/src/datetime_picker_theme.dart';
+export 'package:flutter_datetime_picker_extend/src/date_model.dart';
+export 'package:flutter_datetime_picker_extend/src/i18n_model.dart';
 
 typedef DateChangedCallback(DateTime time);
 typedef DateCancelledCallback();

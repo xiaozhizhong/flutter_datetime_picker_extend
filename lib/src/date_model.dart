@@ -1,5 +1,5 @@
-import 'package:flutter_datetime_picker/src/date_format.dart';
-import 'package:flutter_datetime_picker/src/i18n_model.dart';
+import 'package:flutter_datetime_picker_extend/src/date_format.dart';
+import 'package:flutter_datetime_picker_extend/src/i18n_model.dart';
 import 'datetime_util.dart';
 import 'dart:math';
 
