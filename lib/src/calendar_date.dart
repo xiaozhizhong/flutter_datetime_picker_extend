@@ -112,6 +112,28 @@ class CalendarDate {
     return false;
   }
 
+  CalendarDate copyWith({
+    int year,
+    int month,
+    int day,
+    bool isLunar,
+    bool isLunarLeap,
+    int hour,
+    int minute,
+    int second,
+  }) {
+    return CalendarDate(
+      year: year ?? this.year,
+      month: month ?? this.month,
+      day: day ?? this.day,
+      isLunar: isLunar ?? this.isLunar,
+      isLunarLeap: isLunarLeap ?? this.isLunarLeap,
+      hour: hour ?? this.hour,
+      minute: minute ?? this.minute,
+      second: second ?? this.second,
+    );
+  }
+
   @override
   String toString() {
     return "${isLunar ? "lunar" : "solar"} ${isLunarLeap ? "leap" : ''} ${this.year}-${this.month}-${this.day} ${this.hour}:${this.minute}:${this.second}";
