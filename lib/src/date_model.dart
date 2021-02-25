@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_extend/src/date_format.dart';
+import 'package:flutter_datetime_picker_extend/src/calendar_date.dart';
+import 'package:flutter_datetime_picker_extend/src/helper/calendar_helper.dart';
 import 'package:flutter_datetime_picker_extend/src/i18n_model.dart';
 import 'datetime_util.dart';
 import 'dart:math';
@@ -15,7 +18,7 @@ abstract class BasePickerModel {
   int currentIndex(int column);
 
   //return final time
-  DateTime finalTime();
+  CalendarDate finalTime();
 
   //return divider string
   String getDivider(int column);
@@ -24,6 +27,10 @@ abstract class BasePickerModel {
   List<int> layoutProportions();
 
   int columnLength = 3;
+
+  VoidCallback onForceRefresh;
+
+  LocaleType locale;
 }
 
 //a base class for picker data model
@@ -31,7 +38,6 @@ class CommonPickerModel extends BasePickerModel {
   List<List<String>> list;
   DateTime currentTime;
   List<int> _currentIndices;
-
   LocaleType locale;
 
   CommonPickerModel({this.currentTime, locale}) : this.locale = locale ?? LocaleType.en {
@@ -65,7 +71,7 @@ class CommonPickerModel extends BasePickerModel {
   }
 
   @override
-  DateTime finalTime() {
+  CalendarDate finalTime() {
     return null;
   }
 
@@ -297,8 +303,8 @@ class DatePickerModel extends CommonPickerModel {
   }
 
   @override
-  DateTime finalTime() {
-    return currentTime;
+  CalendarDate finalTime() {
+    return CalendarDate.fromDateTime(currentTime, isLunar: false);
   }
 }
 
@@ -376,12 +382,16 @@ class TimePickerModel extends CommonPickerModel {
   }
 
   @override
-  DateTime finalTime() {
+  CalendarDate finalTime() {
     return currentTime.isUtc
-        ? DateTime.utc(
-            currentTime.year, currentTime.month, currentTime.day, _currentIndices[0], _currentIndices[1], _currentIndices[2])
-        : DateTime(
-            currentTime.year, currentTime.month, currentTime.day, _currentIndices[0], _currentIndices[1], _currentIndices[2]);
+        ? CalendarDate.fromDateTime(
+            DateTime.utc(
+                currentTime.year, currentTime.month, currentTime.day, _currentIndices[0], _currentIndices[1], _currentIndices[2]),
+            isLunar: false)
+        : CalendarDate.fromDateTime(
+            DateTime(
+                currentTime.year, currentTime.month, currentTime.day, _currentIndices[0], _currentIndices[1], _currentIndices[2]),
+            isLunar: false);
   }
 }
 
@@ -453,11 +463,14 @@ class Time12hPickerModel extends CommonPickerModel {
   }
 
   @override
-  DateTime finalTime() {
+  CalendarDate finalTime() {
     int hour = _currentIndices[0] + 12 * _currentIndices[2];
     return currentTime.isUtc
-        ? DateTime.utc(currentTime.year, currentTime.month, currentTime.day, hour, _currentIndices[1], 0)
-        : DateTime(currentTime.year, currentTime.month, currentTime.day, hour, _currentIndices[1], 0);
+        ? CalendarDate.fromDateTime(
+            DateTime.utc(currentTime.year, currentTime.month, currentTime.day, hour, _currentIndices[1], 0),
+            isLunar: false)
+        : CalendarDate.fromDateTime(DateTime(currentTime.year, currentTime.month, currentTime.day, hour, _currentIndices[1], 0),
+            isLunar: false);
   }
 }
 
@@ -613,7 +626,7 @@ class DateTimePickerModel extends CommonPickerModel {
   }
 
   @override
-  DateTime finalTime() {
+  CalendarDate finalTime() {
     DateTime time = currentTime.add(Duration(days: _currentIndices[0]));
     var hour = _currentIndices[1];
     var minute = _currentIndices[2];
@@ -625,8 +638,8 @@ class DateTimePickerModel extends CommonPickerModel {
     }
 
     return currentTime.isUtc
-        ? DateTime.utc(time.year, time.month, time.day, hour, minute)
-        : DateTime(time.year, time.month, time.day, hour, minute);
+        ? CalendarDate.fromDateTime(DateTime.utc(time.year, time.month, time.day, hour, minute), isLunar: false)
+        : CalendarDate.fromDateTime(DateTime(time.year, time.month, time.day, hour, minute), isLunar: false);
   }
 
   @override
@@ -847,12 +860,12 @@ class FullDateTimePickerModel extends CommonPickerModel {
         }
       } else if (isAtSameDay(maxTime, time)) {
         if (index >= 0 && index <= maxTime.hour) {
-          return digits(index, 2) +_localHour();
+          return digits(index, 2) + _localHour();
         } else {
           return null;
         }
       }
-      return digits(index, 2) +_localHour();
+      return digits(index, 2) + _localHour();
     }
 
     return null;
@@ -869,12 +882,12 @@ class FullDateTimePickerModel extends CommonPickerModel {
         }
       } else if (isAtSameDay(maxTime, time) && _currentIndices[1] >= maxTime.hour) {
         if (index >= 0 && index <= maxTime.minute) {
-          return digits(index, 2)+ _localMinute();
+          return digits(index, 2) + _localMinute();
         } else {
           return null;
         }
       }
-      return digits(index, 2)+ _localMinute();
+      return digits(index, 2) + _localMinute();
     }
 
     return null;
@@ -940,14 +953,401 @@ class FullDateTimePickerModel extends CommonPickerModel {
   }
 
   @override
-  DateTime finalTime() {
+  CalendarDate finalTime() {
     return currentTime.isUtc
-        ? DateTime.utc(currentTime.year, currentTime.month, currentTime.day, _currentIndices[3], _currentIndices[4])
-        : DateTime(currentTime.year, currentTime.month, currentTime.day, _currentIndices[3], _currentIndices[4]);
+        ? CalendarDate.fromDateTime(
+            DateTime.utc(currentTime.year, currentTime.month, currentTime.day, _currentIndices[3], _currentIndices[4]),
+            isLunar: false)
+        : CalendarDate.fromDateTime(
+            DateTime(currentTime.year, currentTime.month, currentTime.day, _currentIndices[3], _currentIndices[4]),
+            isLunar: false);
   }
 
   @override
   List<int> layoutProportions() {
     return [3, 2, 2, 2, 2];
+  }
+}
+
+//a base class for picker data model
+class CommonFullPickerModel extends BasePickerModel {
+  List<List> list;
+  List<int> _currentIndices;
+
+  LocaleType locale;
+
+  List get yearList => list[0];
+
+  set yearList(List newList) => list[0] = newList;
+
+  List get monthList => list[1];
+
+  set monthList(List newList) => list[1] = newList;
+
+  List get dayList => list[2];
+
+  set dayList(List newList) => list[2] = newList;
+
+  List get hourList => list[3];
+
+  set hourList(List newList) => list[3] = newList;
+
+  List get minuteList => list[4];
+
+  set minuteList(List newList) => list[4] = newList;
+
+  int get yearIndex => _currentIndices[0];
+
+  set yearIndex(int newIndex) => _currentIndices[0] = newIndex;
+
+  int get monthIndex => _currentIndices[1];
+
+  set monthIndex(int newIndex) => _currentIndices[1] = newIndex;
+
+  int get dayIndex => _currentIndices[2];
+
+  set dayIndex(int newIndex) => _currentIndices[2] = newIndex;
+
+  int get hourIndex => _currentIndices[3];
+
+  set hourIndex(int newIndex) => _currentIndices[3] = newIndex;
+
+  int get minuteIndex => _currentIndices[4];
+
+  set minuteIndex(int newIndex) => _currentIndices[4] = newIndex;
+
+  CommonFullPickerModel({locale}) : this.locale = locale ?? LocaleType.en {
+    this._currentIndices = List.filled(columnLength, 0);
+    list = List(columnLength);
+  }
+
+  @override
+  String getStringAtIndex(int column, int index) {
+    return null;
+  }
+
+  @override
+  int currentIndex(int column) {
+    return _currentIndices[column];
+  }
+
+  @override
+  void onSetIndex(int column, int index) {
+    _currentIndices[column] = index;
+  }
+
+  @override
+  String getDivider(int column) {
+    return "";
+  }
+
+  @override
+  List<int> layoutProportions() {
+    return [1, 1, 1];
+  }
+
+  @override
+  CalendarDate finalTime() {
+    return null;
+  }
+
+  bool isAtSameDay(DateTime day1, DateTime day2) {
+    return day1 != null && day2 != null && day1.difference(day2).inDays == 0 && day1.day == day2.day;
+  }
+}
+
+class FullDateTimePickerModelWithLunar extends CommonFullPickerModel {
+  FullDateTimePickerModelWithLunar(
+      {this.initCurrentDateTime, this.initMaxDateTime, this.initMinDateTime, LocaleType locale, this.lunarType = false})
+      : super(locale: locale) {
+    _init(initCurrentDateTime, initMaxDateTime, initMinDateTime);
+  }
+
+  /// initialize data
+  final CalendarDate initCurrentDateTime, initMaxDateTime, initMinDateTime;
+
+  /// current date and calculated max and min date
+  CalendarDate currentDateTime, maxDateTime, minDateTime;
+
+  ///是否农历
+  bool lunarType;
+
+  /// Toggle lunar/solar type
+  toggleCalendarType() {
+    this.lunarType = !this.lunarType;
+    _init(initCurrentDateTime, initMaxDateTime, initMinDateTime);
+    onForceRefresh?.call();
+  }
+
+  @override
+  int columnLength = 5;
+
+  /// Do init
+  _init(CalendarDate initCurrentTime, CalendarDate initMaxTime, CalendarDate initMinTime) {
+    // set to default if value is null
+    CalendarDate currentTime = initCurrentTime ?? CalendarDate.fromDateTime(DateTime.now(), isLunar: false);
+    CalendarDate maxTime = initMaxTime ?? CalendarDate.solar(year: 2049, month: 12, day: 31);
+    CalendarDate minTime = initMinTime ?? CalendarDate.solar(year: 1970, month: 1, day: 1);
+
+    // convert if initTime type not equal current lunarType
+    if (initCurrentTime.isLunar != lunarType) {
+      currentTime = currentTime.convert;
+    }
+    if (initMaxTime.isLunar != lunarType) {
+      maxTime = maxTime.convert;
+    }
+    if (initMinTime.isLunar != lunarType) {
+      minTime = minTime.convert;
+    }
+
+    // compare currentTime with min & max time
+    if (currentTime > maxTime)
+      currentTime = maxTime;
+    else if (currentTime < minTime) currentTime = minTime;
+
+    this.currentDateTime = currentTime;
+    this.maxDateTime = maxTime;
+    this.minDateTime = minTime;
+
+    //init date list
+    _fillYearList();
+    _fillMonthList();
+    _fillDayList();
+    _fillHourList();
+    _fillMinuteList();
+
+    //set index to currentDateTime
+    yearIndex = yearList.indexWhere((element) => element == currentDateTime.year);
+    final calendarMonth = CalendarMonth.fromCalendarDate(currentDateTime);
+    monthIndex = monthList.indexWhere((element) => calendarMonth == element);
+    dayIndex = dayList.indexWhere((element) => element == currentDateTime.day);
+    hourIndex = hourList.indexWhere((element) => element == currentDateTime.hour);
+    minuteIndex = minuteList.indexWhere((element) => element == currentDateTime.minute);
+  }
+
+  void _fillYearList() {
+    this.yearList = CalendarHelper.yearList(maxYear: this.maxDateTime.year, minYear: this.minDateTime.year);
+  }
+
+  void _fillMonthList() {
+    this.monthList = CalendarHelper.monthList(
+        isLunar: this.lunarType, currentYear: this.currentDateTime.year, maxDate: this.maxDateTime, minDate: this.minDateTime);
+  }
+
+  void _fillDayList() {
+    this.dayList = CalendarHelper.dayList(
+        isLunar: lunarType,
+        currentYear: currentDateTime.year,
+        currentMonth: CalendarMonth.fromCalendarDate(currentDateTime),
+        maxDate: this.maxDateTime,
+        minDate: this.minDateTime);
+  }
+
+  void _fillHourList() {
+    this.hourList = List.generate(24, (index) => index);
+  }
+
+  void _fillMinuteList() {
+    this.minuteList = List.generate(60, (index) => index);
+  }
+
+  @override
+  void onSetIndex(int column, int index) {
+    super.onSetIndex(column, index);
+    switch (column) {
+      case 0:
+        _setYearIndex(index);
+        break;
+      case 1:
+        _setMonthIndex(index);
+        break;
+        break;
+      case 2:
+        _setDayIndex(index);
+        break;
+      case 3:
+        _setHourIndex(index);
+        break;
+      case 4:
+        _setMinuteIndex(index);
+        break;
+    }
+  }
+
+  void _resetMonths() {
+    _fillMonthList();
+    final lastIndex = monthList.indexWhere((element) => element.month == currentDateTime.month);
+    if (lastIndex != -1) {
+      //reset month to last index
+      monthIndex = lastIndex;
+      _refreshCurrentDateTime();
+    } else if (monthIndex > monthList.length - 1) {
+      //set monthIndex to max index of new month list
+      monthIndex = monthList.length - 1;
+      _refreshCurrentDateTime();
+    }
+  }
+
+  void _resetDays() {
+    _fillDayList();
+    final lastIndex = dayList.indexWhere((element) => element == currentDateTime.day);
+    if (lastIndex != -1) {
+      //reset day to last index
+      dayIndex = lastIndex;
+      _refreshCurrentDateTime();
+    } else if (dayIndex > dayList.length - 1) {
+      //set dayIndex to max index of new day list
+      dayIndex = dayList.length - 1;
+      _refreshCurrentDateTime();
+    }
+  }
+
+  _refreshCurrentDateTime() {
+    CalendarMonth calendarMonth = monthList[monthIndex];
+    currentDateTime
+      ..year = yearList[yearIndex]
+      ..month = calendarMonth.month
+      ..isLunarLeap = calendarMonth.isLunarLeap
+      ..day = dayList[dayIndex];
+  }
+
+  void _setYearIndex(int index) {
+    currentDateTime.year = yearList[index];
+    _resetMonths();
+    _resetDays();
+  }
+
+  void _setMonthIndex(int index) {
+    CalendarMonth calendarMonth = monthList[index];
+    currentDateTime
+      ..month = calendarMonth.month
+      ..isLunarLeap = calendarMonth.isLunarLeap;
+    _resetDays();
+  }
+
+  void _setDayIndex(int index) {
+    currentDateTime.day = dayList[index];
+  }
+
+  void _setHourIndex(int index) {
+    currentDateTime.hour = hourList[index];
+  }
+
+  void _setMinuteIndex(int index) {
+    currentDateTime.minute = minuteList[index];
+  }
+
+  /// 2020年
+  String _yearStringAtIndex(int index) {
+    if (index > yearList.length - 1) return null;
+    return "${yearList[index]}${_localeYear()}";
+  }
+
+  /// 十一月/11月
+  String _monthStringAtIndex(int index) {
+    if (index > monthList.length - 1) return null;
+    CalendarMonth calendarMonth = monthList[index];
+    if (lunarType) return CalendarHelper.lunarMonthString(calendarMonth.month, calendarMonth.isLunarLeap);
+    return "${_localeMonth(calendarMonth.month)}";
+  }
+
+  /// 初一/01日
+  String _dayStringAtIndex(int index) {
+    if (index > dayList.length - 1) return null;
+    final day = dayList[index];
+    return lunarType ? CalendarHelper.lunarDayString(day) : "${digits(day, 2)}${_localeDay()}";
+  }
+
+  /// 01时/01点
+  String _hourStringAtIndex(int index) {
+    if (index > hourList.length - 1) return null;
+    return "${digits(hourList[index], 2)}${_localHour()}";
+  }
+
+  /// 01分
+  String _minuteStringAtIndex(int index) {
+    if (index > minuteList.length - 1) return null;
+    return "${digits(minuteList[index], 2)}${_localMinute()}";
+  }
+
+  @override
+  String getStringAtIndex(int column, int index) {
+    if (index < 0) return null;
+    switch (column) {
+      case 0:
+        return _yearStringAtIndex(index);
+        break;
+      case 1:
+        return _monthStringAtIndex(index);
+        break;
+      case 2:
+        return _dayStringAtIndex(index);
+        break;
+      case 3:
+        return _hourStringAtIndex(index);
+        break;
+      case 4:
+        return _minuteStringAtIndex(index);
+        break;
+      default:
+        return null;
+    }
+  }
+
+  String _localeYear() {
+    if (locale == LocaleType.zh || locale == LocaleType.jp) {
+      return '年';
+    } else if (locale == LocaleType.ko) {
+      return '년';
+    } else {
+      return '';
+    }
+  }
+
+  String _localeMonth(int month) {
+    if (locale == LocaleType.zh || locale == LocaleType.jp) {
+      return '${digits(month, 2)}月';
+    } else if (locale == LocaleType.ko) {
+      return '$month월';
+    } else {
+      List monthStrings = i18nObjInLocale(locale)['monthLong'];
+      return monthStrings[month - 1];
+    }
+  }
+
+  String _localeDay() {
+    if (locale == LocaleType.zh || locale == LocaleType.jp) {
+      return '日';
+    } else if (locale == LocaleType.ko) {
+      return '일';
+    } else {
+      return '';
+    }
+  }
+
+  String _localHour() {
+    if (locale == LocaleType.zh || locale == LocaleType.jp) {
+      return lunarType ? "时" : "点";
+    } else {
+      return '';
+    }
+  }
+
+  String _localMinute() {
+    if (locale == LocaleType.zh || locale == LocaleType.jp) {
+      return '分';
+    } else {
+      return '';
+    }
+  }
+
+  @override
+  CalendarDate finalTime() {
+    return currentDateTime;
+  }
+
+  @override
+  List<int> layoutProportions() {
+    return [3, 3, 2, 2, 2];
   }
 }
