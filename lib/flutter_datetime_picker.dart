@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_extend/src/datetime_picker_theme.dart';
 import 'package:flutter_datetime_picker_extend/src/date_model.dart';
 import 'package:flutter_datetime_picker_extend/src/i18n_model.dart';
+import 'package:flutter_datetime_picker_extend/src/widget/single_touch_recognizer_widget.dart';
 
 export 'package:flutter_datetime_picker_extend/src/datetime_picker_theme.dart';
 export 'package:flutter_datetime_picker_extend/src/date_model.dart';
@@ -188,7 +189,6 @@ class DatePicker {
       ),
     );
   }
-
 
   ///
   /// Display date picker bottom sheet witch custom picker model.
@@ -425,51 +425,53 @@ class _DatePickerState extends State<_DatePickerComponent> {
   }
 
   Widget _renderItemView(DatePickerTheme theme) {
-    return Container(
-      color: theme.backgroundColor ?? Colors.white,
-      child: Stack(
-        children: [
-          ///selectBackgroundWidget
-          if (theme.selectBackgroundWidget != null) theme.selectBackgroundWidget,
+    return SingleTouchRecognizerWidget(
+      child: Container(
+        color: theme.backgroundColor ?? Colors.white,
+        child: Stack(
+          children: [
+            ///selectBackgroundWidget
+            if (theme.selectBackgroundWidget != null) theme.selectBackgroundWidget,
 
-          ///内容
-          Padding(
-            padding: theme.pickerPadding,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                ...List.generate(widget.pickerModel.columnLength, (column) {
-                  if (widget.pickerModel.layoutProportions()[column] <= 0) return SizedBox();
+            ///内容
+            Padding(
+              padding: theme.pickerPadding,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  ...List.generate(widget.pickerModel.columnLength, (column) {
+                    if (widget.pickerModel.layoutProportions()[column] <= 0) return SizedBox();
 
-                  final view = _renderColumnView(
-                      ValueKey(widget.pickerModel.currentIndex(column)),
-                      theme,
-                      (int index) => widget.pickerModel.getStringAtIndex(column, index),
-                      scrollCtrlList[column],
-                      (index) => widget.pickerModel.onSetIndex(column, index), (index) {
-                    setState(() {
-                      refreshScrollOffset();
-                      _notifyDateChanged();
+                    final view = _renderColumnView(
+                        ValueKey(widget.pickerModel.currentIndex(column)),
+                        theme,
+                        (int index) => widget.pickerModel.getStringAtIndex(column, index),
+                        scrollCtrlList[column],
+                        (index) => widget.pickerModel.onSetIndex(column, index), (index) {
+                      setState(() {
+                        refreshScrollOffset();
+                        _notifyDateChanged();
+                      });
                     });
-                  });
 
-                  final expandWrapper =
-                      (Widget child) => Expanded(flex: widget.pickerModel.layoutProportions()[column], child: child);
+                    final expandWrapper =
+                        (Widget child) => Expanded(flex: widget.pickerModel.layoutProportions()[column], child: child);
 
-                  if (column == widget.pickerModel.columnLength - 1) {
-                    return expandWrapper(view);
-                  }
-                  final divider = Text(
-                    widget.pickerModel.getDivider(column),
-                    style: theme.itemStyle,
-                  );
+                    if (column == widget.pickerModel.columnLength - 1) {
+                      return expandWrapper(view);
+                    }
+                    final divider = Text(
+                      widget.pickerModel.getDivider(column),
+                      style: theme.itemStyle,
+                    );
 
-                  return expandWrapper(Row(children: [Expanded(child: view), divider]));
-                }),
-              ],
-            ),
-          )
-        ],
+                    return expandWrapper(Row(children: [Expanded(child: view), divider]));
+                  }),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
