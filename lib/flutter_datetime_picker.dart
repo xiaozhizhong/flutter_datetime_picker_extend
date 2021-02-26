@@ -152,41 +152,43 @@ class DatePicker {
   //   );
   // }
   //
-  // ///
-  // /// Display date&time picker bottom sheet.
-  // ///
-  // static Future<CalendarDate> showFullDateTimePicker(
-  //   BuildContext context, {
-  //   bool showTitleActions: true,
-  //   CalendarDate minTime,
-  //   CalendarDate maxTime,
-  //   DateChangedCallback onChanged,
-  //   DateChangedCallback onConfirm,
-  //   DateCancelledCallback onCancel,
-  //   locale: LocaleType.en,
-  //   CalendarDate currentTime,
-  //   DatePickerTheme theme,
-  //   bool isLunar = false,
-  // }) async {
-  //   return await Navigator.push(
-  //     context,
-  //     _DatePickerRoute(
-  //       showTitleActions: showTitleActions,
-  //       onChanged: onChanged,
-  //       onConfirm: onConfirm,
-  //       onCancel: onCancel,
-  //       locale: locale,
-  //       theme: theme,
-  //       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-  //       pickerModel: FullDateTimePickerModelWithLunar(
-  //           initCurrentDateTime: currentTime,
-  //           initMinDateTime: minTime,
-  //           initMaxDateTime: maxTime,
-  //           locale: locale,
-  //           lunarType: isLunar),
-  //     ),
-  //   );
-  // }
+
+  ///
+  /// Display date&time picker bottom sheet.
+  ///
+  static Future<CalendarDate> showFullDateTimePicker(
+    BuildContext context, {
+    bool showTitleActions: true,
+    CalendarDate minTime,
+    CalendarDate maxTime,
+    DateChangedCallback onChanged,
+    DateChangedCallback onConfirm,
+    DateCancelledCallback onCancel,
+    locale: LocaleType.en,
+    CalendarDate currentTime,
+    DatePickerTheme theme,
+    bool isLunar = false,
+  }) async {
+    return await Navigator.push(
+      context,
+      _DatePickerRoute(
+        showTitleActions: showTitleActions,
+        onChanged: onChanged,
+        onConfirm: onConfirm,
+        onCancel: onCancel,
+        locale: locale,
+        theme: theme,
+        barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        pickerModel: FullDateTimePickerModelWithLunar(
+            initCurrentDateTime: currentTime,
+            initMinDateTime: minTime,
+            initMaxDateTime: maxTime,
+            locale: locale,
+            lunarType: isLunar),
+      ),
+    );
+  }
+
 
   ///
   /// Display date picker bottom sheet witch custom picker model.
