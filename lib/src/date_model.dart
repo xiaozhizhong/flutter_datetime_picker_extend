@@ -1190,7 +1190,6 @@ class FullDateTimePickerModelWithLunar extends CommonFullPickerModel {
 
   void _resetDays() {
     _fillDayList();
-    print(dayList);
     final lastIndex = dayList.indexWhere((element) => element == currentDateTime.day);
     if (lastIndex != -1) {
       //reset day to last index

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_datetime_picker_extend/src/helper/date_helper.dart';
 import 'package:flutter_datetime_picker_extend/src/helper/lunar_solar_converter.dart';
+import 'package:tuple/tuple.dart';
 
 ///
 ///@author shaw
@@ -50,7 +51,17 @@ class CalendarDate {
   int minute;
   int second;
 
-  ///农历、新历互转
+  /// Solar now
+  static CalendarDate get nowSolar {
+    return CalendarDate.fromDateTime(DateTime.now(), isLunar: false);
+  }
+
+  /// Lunar now
+  static CalendarDate get nowLunar {
+    return LunarSolarConverter.solarToLunar(nowSolar);
+  }
+
+  /// Convert between lunar and solar
   CalendarDate get convert {
     if (this.isLunar)
       return LunarSolarConverter.lunarToSolar(this);
@@ -58,7 +69,21 @@ class CalendarDate {
       return LunarSolarConverter.solarToLunar(this);
   }
 
+  /// To dateTime, no convert
   DateTime get toDateTime => DateTime(this.year, this.month, this.day, this.hour, this.minute, this.second);
+
+  /// To solar dateTime
+  DateTime get toDateTimeSolar {
+    if (this.isLunar) return LunarSolarConverter.lunarToSolar(this).toDateTime;
+    return toDateTime;
+  }
+
+  /// To lunar dateTime
+  /// return Tuple2<dateTime,isLunarLeap>
+  Tuple2<DateTime, bool> get toDateTimeLunar {
+    CalendarDate calendarDate = this.isLunar ? this : LunarSolarConverter.solarToLunar(this);
+    return Tuple2(calendarDate.toDateTime, calendarDate.isLunarLeap);
+  }
 
   bool operator >(CalendarDate another) {
     assert(this.isLunar == another.isLunar, "calendar type must the same when compare two CalendarDate");
@@ -112,6 +137,30 @@ class CalendarDate {
     return false;
   }
 
+  @override
+  bool operator ==(Object other) =>
+      other is CalendarDate &&
+      runtimeType == other.runtimeType &&
+      year == other.year &&
+      month == other.month &&
+      day == other.day &&
+      isLunar == other.isLunar &&
+      isLunarLeap == other.isLunarLeap &&
+      hour == other.hour &&
+      minute == other.minute &&
+      second == other.second;
+
+  @override
+  int get hashCode =>
+      year.hashCode ^
+      month.hashCode ^
+      day.hashCode ^
+      isLunar.hashCode ^
+      isLunarLeap.hashCode ^
+      hour.hashCode ^
+      minute.hashCode ^
+      second.hashCode;
+
   CalendarDate copyWith({
     int year,
     int month,
@@ -140,6 +189,7 @@ class CalendarDate {
   }
 }
 
+/// Calendar month support lunar leap
 class CalendarMonth {
   CalendarMonth(this.month, {this.isLunarLeap = false});
 
@@ -161,25 +211,22 @@ class CalendarMonth {
     return CalendarMonth(12, isLunarLeap: false);
   }
 
-  @override
   bool operator <(CalendarMonth another) {
-    if (this.isLunarLeap == another.isLunarLeap || this.month!=another.month) return this.month < another.month;
+    if (this.isLunarLeap == another.isLunarLeap || this.month != another.month) return this.month < another.month;
     return another.isLunarLeap ? true : false;
   }
 
-  @override
   bool operator >(CalendarMonth another) {
-    if (this.isLunarLeap == another.isLunarLeap || this.month!=another.month) return this.month > another.month;
+    if (this.isLunarLeap == another.isLunarLeap || this.month != another.month) return this.month > another.month;
     return this.isLunarLeap ? true : false;
   }
 
   @override
-  bool operator ==(Object other) {
-    if (other is CalendarMonth) {
-      return this.isLunarLeap == other.isLunarLeap && this.month == other.month;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is CalendarMonth && runtimeType == other.runtimeType && month == other.month && isLunarLeap == other.isLunarLeap;
+
+  @override
+  int get hashCode => month.hashCode ^ isLunarLeap.hashCode;
 
   @override
   String toString() {

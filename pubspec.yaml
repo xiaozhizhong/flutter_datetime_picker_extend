@@ -13,7 +13,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  tuple: ^1.0.3 #元数据 https://pub.flutter-io.cn/packages/tuple/changelog
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
 
