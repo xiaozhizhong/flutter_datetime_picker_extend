@@ -1,4 +1,5 @@
-import 'i18n_model.dart';
+
+import '../model/i18n_model.dart';
 
 /// Outputs year as four digits
 ///

@@ -5,7 +5,7 @@
 ///
 
 export "flutter_datetime_picker.dart";
-export 'src/calendar_date.dart';
+export 'src/model/calendar_date.dart';
 export 'src/date_model.dart';
-export 'src/cupertino_picker.dart';
+export 'src/widget/cupertino_picker.dart';
 export 'src/helper/calendar_helper.dart';

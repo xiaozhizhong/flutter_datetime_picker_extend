@@ -2,17 +2,16 @@ library flutter_datetime_picker_extend;
 
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_datetime_picker_extend/src/calendar_date.dart';
-import 'package:flutter_datetime_picker_extend/src/cupertino_picker.dart' as cupertinoPicker;
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_extend/src/datetime_picker_theme.dart';
 import 'package:flutter_datetime_picker_extend/src/date_model.dart';
-import 'package:flutter_datetime_picker_extend/src/i18n_model.dart';
+import 'package:flutter_datetime_picker_extend/src/model/calendar_date.dart';
 import 'package:flutter_datetime_picker_extend/src/widget/single_touch_recognizer_widget.dart';
+import 'package:flutter_datetime_picker_extend/src/widget/cupertino_picker.dart' as cupertinoPicker;
+import 'src/model/i18n_model.dart';
 
 export 'package:flutter_datetime_picker_extend/src/datetime_picker_theme.dart';
 export 'package:flutter_datetime_picker_extend/src/date_model.dart';
-export 'package:flutter_datetime_picker_extend/src/i18n_model.dart';
 
 typedef DateChangedCallback(CalendarDate time);
 typedef DateCancelledCallback();
@@ -372,13 +371,13 @@ class _DatePickerState extends State<_DatePickerComponent> {
   }
 
   Widget _renderColumnView(
-    ValueKey key,
-    DatePickerTheme theme,
-    StringAtIndexCallBack stringAtIndexCB,
-    ScrollController scrollController,
-    ValueChanged<int> selectedChangedWhenScrolling,
-    ValueChanged<int> selectedChangedWhenScrollEnd,
-  ) {
+      {ValueKey key,
+      DatePickerTheme theme,
+      StringAtIndexCallBack stringAtIndexCB,
+      ScrollController scrollController,
+      ValueChanged<int> selectedChangedWhenScrolling,
+      ValueChanged<int> selectedChangedWhenScrollEnd,
+      double offAxisFraction}) {
     return Container(
       padding: EdgeInsets.all(8.0),
       height: theme.containerHeight,
@@ -396,30 +395,30 @@ class _DatePickerState extends State<_DatePickerComponent> {
           return false;
         },
         child: cupertinoPicker.CupertinoPicker.builder(
-          key: key,
-          //backgroundColor: theme.backgroundColor ?? Colors.white,
-          scrollController: scrollController,
-          itemExtent: theme.itemHeight,
-          onSelectedItemChanged: (int index) {
-            selectedChangedWhenScrolling(index);
-          },
-          magnification: 1.1,
-          itemBuilder: (BuildContext context, int index) {
-            final content = stringAtIndexCB(index);
-            if (content == null) {
-              return null;
-            }
-            return Container(
-              height: theme.itemHeight,
-              alignment: Alignment.center,
-              child: Text(
-                content,
-                style: theme.itemStyle,
-                textAlign: TextAlign.start,
-              ),
-            );
-          },
-        ),
+            key: key,
+            //backgroundColor: theme.backgroundColor ?? Colors.white,
+            offAxisFraction: offAxisFraction,
+            scrollController: scrollController,
+            itemExtent: theme.itemHeight,
+            onSelectedItemChanged: (int index) {
+              selectedChangedWhenScrolling(index);
+            },
+            magnification: 1.1,
+            itemBuilder: (BuildContext context, int index) {
+              final content = stringAtIndexCB(index);
+              if (content == null) {
+                return null;
+              }
+              return Container(
+                height: theme.itemHeight,
+                alignment: Alignment.center,
+                child: Text(
+                  content,
+                  style: theme.itemStyle,
+                  textAlign: TextAlign.start,
+                ),
+              );
+            }),
       ),
     );
   }
@@ -443,16 +442,20 @@ class _DatePickerState extends State<_DatePickerComponent> {
                     if (widget.pickerModel.layoutProportions()[column] <= 0) return SizedBox();
 
                     final view = _renderColumnView(
-                        ValueKey(widget.pickerModel.currentIndex(column)),
-                        theme,
-                        (int index) => widget.pickerModel.getStringAtIndex(column, index),
-                        scrollCtrlList[column],
-                        (index) => widget.pickerModel.onSetIndex(column, index), (index) {
-                      setState(() {
-                        refreshScrollOffset();
-                        _notifyDateChanged();
-                      });
-                    });
+                        key: ValueKey(_IndexKey(
+                            length: widget.pickerModel.list[column].length,
+                            parentIndex: widget.pickerModel.currentIndex(column == 0 ? 0 : column - 1))),
+                        theme: theme,
+                        stringAtIndexCB: (int index) => widget.pickerModel.getStringAtIndex(column, index),
+                        scrollController: scrollCtrlList[column],
+                        selectedChangedWhenScrolling: (index) => widget.pickerModel.onSetIndex(column, index),
+                        selectedChangedWhenScrollEnd: (index) {
+                          setState(() {
+                            refreshScrollOffset();
+                            _notifyDateChanged();
+                          });
+                        },
+                        offAxisFraction: _buildOffAxisFraction(column));
 
                     final expandWrapper =
                         (Widget child) => Expanded(flex: widget.pickerModel.layoutProportions()[column], child: child);
@@ -474,6 +477,48 @@ class _DatePickerState extends State<_DatePickerComponent> {
         ),
       ),
     );
+  }
+
+  double _buildOffAxisFraction(int column) {
+    switch (widget.pickerModel.columnLength) {
+      case 1:
+        return 0;
+        break;
+      case 2:
+        return column == 0 ? -5 : 5;
+      case 3:
+        if (column == 0)
+          return -3;
+        else if (column == 1)
+          return 0;
+        else
+          return 3;
+        break;
+      case 4:
+        if (column == 0)
+          return -0.5;
+        else if (column == 1)
+          return -0.25;
+        else if (column == 2)
+          return 0.25;
+        else
+          return 0.5;
+        break;
+      case 5:
+        if (column == 0)
+          return -0.5;
+        else if (column == 1)
+          return -0.25;
+        else if (column == 2)
+          return 0;
+        else if (column == 3)
+          return 0.25;
+        else
+          return 0.5;
+        break;
+      default:
+        return 0;
+    }
   }
 
   // Title View
@@ -580,4 +625,18 @@ class _BottomPickerLayout extends SingleChildLayoutDelegate {
   bool shouldRelayout(_BottomPickerLayout oldDelegate) {
     return progress != oldDelegate.progress;
   }
+}
+
+class _IndexKey {
+  _IndexKey({@required this.length, @required this.parentIndex});
+
+  int length;
+  int parentIndex;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _IndexKey && runtimeType == other.runtimeType && length == other.length && parentIndex == other.parentIndex;
+
+  @override
+  int get hashCode => length.hashCode ^ parentIndex.hashCode;
 }
