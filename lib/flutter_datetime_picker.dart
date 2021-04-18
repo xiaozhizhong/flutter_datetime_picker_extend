@@ -1,17 +1,19 @@
 library flutter_datetime_picker_extend;
 
 import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker_extend/src/datetime_picker_theme.dart';
 import 'package:flutter_datetime_picker_extend/src/date_model.dart';
+import 'package:flutter_datetime_picker_extend/src/datetime_picker_theme.dart';
 import 'package:flutter_datetime_picker_extend/src/model/calendar_date.dart';
-import 'package:flutter_datetime_picker_extend/src/widget/single_touch_recognizer_widget.dart';
 import 'package:flutter_datetime_picker_extend/src/widget/cupertino_picker.dart' as cupertinoPicker;
+import 'package:flutter_datetime_picker_extend/src/widget/single_touch_recognizer_widget.dart';
+
 import 'src/model/i18n_model.dart';
 
-export 'package:flutter_datetime_picker_extend/src/datetime_picker_theme.dart';
 export 'package:flutter_datetime_picker_extend/src/date_model.dart';
+export 'package:flutter_datetime_picker_extend/src/datetime_picker_theme.dart';
 
 typedef DateChangedCallback(CalendarDate time);
 typedef DateCancelledCallback();
@@ -156,7 +158,8 @@ class DatePicker {
   ///
   /// Display date&time picker bottom sheet.
   ///
-  static Future<CalendarDate> showFullDateTimePicker(BuildContext context, {
+  static Future<CalendarDate> showFullDateTimePicker(
+    BuildContext context, {
     bool showTitleActions: true,
     CalendarDate minTime,
     CalendarDate maxTime,
@@ -177,9 +180,7 @@ class DatePicker {
         onCancel: onCancel,
         locale: locale,
         theme: theme,
-        barrierLabel: MaterialLocalizations
-            .of(context)
-            .modalBarrierDismissLabel,
+        barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
         pickerModel: FullDateTimePickerModelWithLunar(
             initCurrentDateTime: currentTime,
             initMinDateTime: minTime,
@@ -193,7 +194,8 @@ class DatePicker {
   ///
   /// Display date picker bottom sheet witch custom picker model.
   ///
-  static Future<CalendarDate> showPicker(BuildContext context, {
+  static Future<CalendarDate> showPicker(
+    BuildContext context, {
     bool showTitleActions: true,
     DateChangedCallback onChanged,
     DateChangedCallback onConfirm,
@@ -211,9 +213,7 @@ class DatePicker {
         onCancel: onCancel,
         locale: locale,
         theme: theme,
-        barrierLabel: MaterialLocalizations
-            .of(context)
-            .modalBarrierDismissLabel,
+        barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
         pickerModel: pickerModel..locale = locale,
       ),
     );
@@ -231,8 +231,7 @@ class _DatePickerRoute<T> extends PopupRoute<T> {
     this.locale,
     RouteSettings settings,
     pickerModel,
-  })
-      : this.pickerModel = pickerModel ?? DatePickerModel(),
+  })  : this.pickerModel = pickerModel ?? DatePickerModel(),
         this.theme = theme ?? DatePickerTheme(),
         super(settings: settings);
 
@@ -324,7 +323,7 @@ class _DatePickerState extends State<_DatePickerComponent> {
 
   void refreshScrollOffset() {
     scrollCtrlList = List.generate(widget.pickerModel.columnLength,
-            (index) => FixedExtentScrollController(initialItem: widget.pickerModel.currentIndex(index)));
+        (index) => FixedExtentScrollController(initialItem: widget.pickerModel.currentIndex(index)));
   }
 
   @override
@@ -334,10 +333,7 @@ class _DatePickerState extends State<_DatePickerComponent> {
       child: AnimatedBuilder(
         animation: widget.route.animation,
         builder: (BuildContext context, Widget child) {
-          final double bottomPadding = MediaQuery
-              .of(context)
-              .padding
-              .bottom;
+          final double bottomPadding = MediaQuery.of(context).padding.bottom;
           return ClipRect(
             child: CustomSingleChildLayout(
               delegate: _BottomPickerLayout(
@@ -371,20 +367,21 @@ class _DatePickerState extends State<_DatePickerComponent> {
       return Column(
         children: <Widget>[
           _renderTitleActionsView(theme),
-          Expanded(child: itemView),
+          Expanded(child: SafeArea(child: itemView)),
         ],
       );
     }
     return itemView;
   }
 
-  Widget _renderColumnView({ValueKey key,
-    DatePickerTheme theme,
-    StringAtIndexCallBack stringAtIndexCB,
-    ScrollController scrollController,
-    ValueChanged<int> selectedChangedWhenScrolling,
-    ValueChanged<int> selectedChangedWhenScrollEnd,
-    double offAxisFraction}) {
+  Widget _renderColumnView(
+      {ValueKey key,
+      DatePickerTheme theme,
+      StringAtIndexCallBack stringAtIndexCB,
+      ScrollController scrollController,
+      ValueChanged<int> selectedChangedWhenScrolling,
+      ValueChanged<int> selectedChangedWhenScrollEnd,
+      double offAxisFraction}) {
     return Container(
       padding: EdgeInsets.all(8.0),
       height: theme.containerHeight,
@@ -436,7 +433,6 @@ class _DatePickerState extends State<_DatePickerComponent> {
         color: theme.backgroundColor ?? Colors.white,
         child: Stack(
           children: [
-
             ///selectBackgroundWidget
             if (theme.selectBackgroundWidget != null) theme.selectBackgroundWidget,
 
@@ -539,7 +535,7 @@ class _DatePickerState extends State<_DatePickerComponent> {
       height: theme.titleHeight,
       decoration: ShapeDecoration(
         shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))),
+            RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))),
         color: theme.headerColor ?? theme.backgroundColor ?? Colors.white,
       ),
       child: Row(
@@ -595,12 +591,13 @@ class _DatePickerState extends State<_DatePickerComponent> {
 }
 
 class _BottomPickerLayout extends SingleChildLayoutDelegate {
-  _BottomPickerLayout(this.progress,
-      this.theme, {
-        this.itemCount,
-        this.showTitleActions,
-        this.bottomPadding = 0,
-      });
+  _BottomPickerLayout(
+    this.progress,
+    this.theme, {
+    this.itemCount,
+    this.showTitleActions,
+    this.bottomPadding = 0,
+  });
 
   final double progress;
   final int itemCount;
@@ -644,11 +641,12 @@ class _IndexKey {
 
   @override
   bool operator ==(Object other) =>
-      other is _IndexKey && runtimeType == other.runtimeType && length == other.length && parentIndex == other.parentIndex &&
-          refreshValue == other.refreshValue;
+      other is _IndexKey &&
+      runtimeType == other.runtimeType &&
+      length == other.length &&
+      parentIndex == other.parentIndex &&
+      refreshValue == other.refreshValue;
 
   @override
   int get hashCode => length.hashCode ^ parentIndex.hashCode ^ refreshValue.hashCode;
-
-
 }
